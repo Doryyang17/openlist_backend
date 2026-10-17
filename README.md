@@ -1,175 +1,65 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/OpenListTeam/Logo/main/logo.svg" width="128" height="128" alt="logo" />
+# OpenList 个人定制后端
 
-  <p><em>OpenList is a resilient, long-term governance, community-driven fork of AList — built to defend open source against trust-based attacks.</em></p>
+基于 [OpenList v4.2.7](https://github.com/OpenListTeam/OpenList/tree/v4.2.7) 的个人定制后端，保留上游 Git 历史、Go 模块路径与许可证，集中维护账号收藏等二开功能。本项目独立维护，不是 OpenList 官方发行版。
 
-  <img src="https://goreportcard.com/badge/github.com/OpenListTeam/OpenList/v3" alt="latest version" />
-  <a href="https://github.com/OpenListTeam/OpenList/blob/main/LICENSE"><img src="https://img.shields.io/github/license/OpenListTeam/OpenList" alt="License" /></a>
-  <a href="https://github.com/OpenListTeam/OpenList/actions?query=workflow%3ABuild"><img src="https://img.shields.io/github/actions/workflow/status/OpenListTeam/OpenList/build.yml?branch=main" alt="Build status" /></a>
-  <a href="https://github.com/OpenListTeam/OpenList/releases"><img src="https://img.shields.io/github/release/OpenListTeam/OpenList" alt="latest version" /></a>
+配套前端为 [openlist_front](https://github.com/Doryyang17/openlist_front)（需要仓库访问权限），初始基线为 OpenList-Frontend v4.2.6。前后端分别维护源码和提交；收藏界面与接口需要配套使用。
 
-  <a href="https://github.com/OpenListTeam/OpenList/discussions"><img src="https://img.shields.io/github/discussions/OpenListTeam/OpenList?color=%23ED8936" alt="discussions" /></a>
-  <a href="https://github.com/OpenListTeam/OpenList/releases"><img src="https://img.shields.io/github/downloads/OpenListTeam/OpenList/total?color=%239F7AEA&logo=github" alt="Downloads" /></a>
-</div>
+## 当前二开功能
 
----
+| 功能            | 使用行为                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| 账号收藏        | 文件和文件夹均可收藏，绑定当前登录账号并持久化到既有数据库；游客不可用。                   |
+| 收藏列表        | 支持名称字面包含筛选、文件／目录筛选与服务端分页，按收藏时间和 ID 倒序排列。               |
+| 状态与幂等      | 批量查询路径收藏状态；重复新增保留原记录，重复取消不报错，旧记录的迟到取消不影响重新收藏。 |
+| 打开与权限      | 新增和打开时检查当前文件权限、账号根目录与目录密码；打开目标和所在目录分别校验。           |
+| 账号生命周期    | 删除账号时同时清除收藏；账号根目录变化后，范围外条目仍可取消，但不返回原路径。             |
+| SQLite 写入协调 | 在同一进程内串行处理收藏新增、取消与账号删除，等待过程可响应请求取消或超时。               |
+| 表前缀迁移      | 按实际表名生成唯一与排序索引，支持同库不同前缀；迁移保留已有收藏及旧索引。                 |
 
-- English | [中文](./README/README_cn.md) | [日本語](./README/README_ja.md) | [Dutch](./README/README_nl.md) | [한국어](./README/README_ko.md) | [Deutsch](./README/README_de.md) | [Русский](./README/README_ru.md) | [Français](./README/README_fr.md) | [Español](./README/README_es.md) | [العربية](./README/README_ar.md)
+收藏按路径记录，不自动追踪文件改名或移动；同一路径后来对应新对象时，会打开新对象。收藏不额外授予文件权限，不保存目录密码、登录 token、下载直链或宿主机文件路径。
 
-- [Contributing](./CONTRIBUTING.md)
-- [CODE OF CONDUCT](./CODE_OF_CONDUCT.md)
-- [LICENSE](./LICENSE)
+接口使用 `/api/favorites` 协议 v1，复用既有认证和权限流程。完整契约、错误原因、数据边界与回归命令见 [收藏接口说明](docs/favorites.md)。
 
-## Disclaimer
+## 二开编年史
 
-OpenList is an open-source project independently maintained by the OpenList Team, following the AGPL-3.0 license and committed to maintaining complete code openness and modification transparency.
+按日期倒序记录定制功能、修复与基线变化。上游版本号表示源码来源，不等同于二开版本已经发布或部署；配套前端的早期定制历史在其 README 中维护。
 
-We have noticed the emergence of some third-party projects in the community with names similar to this project, such as OpenListApp/OpenListApp, as well as some paid proprietary software using the same or similar naming. To avoid user confusion, we hereby declare:
+### 2026-10-17
 
-- OpenList has no official association with any third-party derivative projects.
+- **账号收藏首版**：新增收藏模型、数据访问与六个接口，接入数据库迁移、登录账号认证及删除账号清理。支持文件／目录收藏、分页筛选、批量状态查询、目标与父目录解析。
+- **数据和权限边界**：使用账号与规范化路径摘要建立唯一约束；打开时重新验证权限与对象，处理密码保护、权限撤回和账号根目录变化。列表不扫描远端存储，临时存储故障不删除书签。
+- **SQLite 并发修复**：收藏新增、取消和删除账号共用进程内写入控制；回归覆盖 DELETE/WAL 模式、同路径与不同路径竞争、账号删除及等待取消。
+- **表前缀迁移修复**：唯一与排序索引由实际表名生成，避免同库多个前缀使用固定索引名；覆盖新建、旧索引升级、空前缀、多前缀共存与重复迁移，保留原有收藏数据。
+- **独立验证工具**：增加临时 SQLite 单元测试与隔离 HTTP 验证脚本，使用合成账号和文件验证权限、分页、持久化及旧 ID 取消边界。配套前端可编译本仓库，并在测试后端切换前备份测试配置和数据库。
+- **推送与发布分离**：为继承的 beta 发布、beta Docker 和 Gitee 同步流程增加上游仓库条件，防止本 fork 的普通源码推送触发这些流程；正式发布流程仍需适配二开构建输入。
+- **建立后端定制基线**：以官方 v4.2.7 的 `3b28270a4066ea52943a69ecddd850d83f7e8bdc` 为起点，保留上游历史及 `github.com/OpenListTeam/OpenList/v4` 模块路径。之前的登录页、搜索、TXT、视频和工具栏定制属于配套前端的开发历史。
 
-- All software, code, and services of this project are maintained by the OpenList Team and are freely available on GitHub.
+后续每次新增、修复或撤回二开功能，同步更新本节和上方功能表；已提交的历史记录保留关联提交，撤回或替代关系明确标注。
 
-- Project documentation and API services primarily rely on charitable resources provided by Cloudflare. There are currently no paid plans or commercial deployments, and the use of existing features does not involve any costs.
+## 开发与验证
 
-We respect the community's rights to free use and derivative development, but we also strongly urge downstream projects:
+工具链要求以 [go.mod](go.mod) 为准，当前声明 Go 1.26.0、工具链 go1.27.1。独立数据目录、前后端联调和上游同步方法见 [本地开发说明](LOCAL_DEVELOPMENT.md)。
 
-- Should not use the "OpenList" name for impersonation promotion or commercial gain;
+```sh
+# 收藏专项：临时 SQLite、账号隔离、并发与迁移
+GOMAXPROCS=1 go test -p 1 -mod=readonly -tags=jsoniter ./internal/db ./server/handles -run 'TestFavorite' -count=1
 
-- Must not distribute OpenList-based code in a closed-source manner or violate AGPL license terms.
+# 当前主机编译，不下载或替换前端
+GOMAXPROCS=1 go build -p 1 -mod=readonly -tags=jsoniter -o ./bin/openlist-dev .
+```
 
-To better maintain healthy ecosystem development, we recommend:
+收藏自动化测试当前实测 SQLite；MySQL/PostgreSQL 尚未验收。完整包测试中，原有搜索用例 `TestIsSearchNodeAccessible/outside_base_path` 在未修改的上游基线同样失败；收藏专项通过不代表所有上游测试通过。
 
-- Clearly indicate the project source and choose appropriate open-source licenses in accordance with the open-source spirit;
+## 配套与发布边界
 
-- If involving commercial use, please avoid using "OpenList" or any confusing naming as the project name;
+本次收藏首版尚未指定独立发布版本。正式发布需固定前后端提交、完成真实手机和生产数据迁移验收，并验证 Linux 镜像与数据卷备份恢复。
 
-- If you need to use materials located under OpenListTeam/Logo, you may modify and use them under compliance with the agreement.
+现有 `Dockerfile` 调用上游 `build.sh`，默认下载官方前端并覆盖 `public/dist`，不能直接作为带二开收藏界面的镜像发布流程。前端可通过外置 `dist_dir` 加载；正式镜像采用嵌入还是挂载方式，需要在发布流程中明确。
 
-Thank you for your support and understanding of the OpenList project.
+源码推送与运行环境部署分别管理。完整备份 OpenList 数据库可包含收藏；升级和回退还需检查上游数据库迁移兼容性，不直接覆盖数据库或删除收藏表。
 
-## Features
+## 代码来源与许可证
 
-- [x] Multiple storages
-  - [x] Local storage
-  - [x] [Aliyundrive](https://www.alipan.com)
-  - [x] OneDrive / Sharepoint ([Global](https://www.microsoft.com/en-us/microsoft-365/onedrive/online-cloud-storage), [CN](https://portal.partner.microsoftonline.cn), DE, US)
-  - [x] [189cloud](https://cloud.189.cn) (Personal, Family)
-  - [x] [GoogleDrive](https://drive.google.com)
-  - [x] [123pan](https://www.123pan.com)
-  - [x] [FTP / SFTP](https://en.wikipedia.org/wiki/File_Transfer_Protocol)
-  - [x] [PikPak](https://www.mypikpak.com)
-  - [x] [S3](https://aws.amazon.com/s3)
-  - [x] [Seafile](https://seafile.com)
-  - [x] [UPYUN Storage Service](https://www.upyun.com/products/file-storage)
-  - [x] [WebDAV](https://en.wikipedia.org/wiki/WebDAV)
-  - [x] Teambition([China](https://www.teambition.com), [International](https://us.teambition.com))
-  - [x] [MediaFire](https://www.mediafire.com)
-  - [x] [Mediatrack](https://www.mediatrack.cn)
-  - [x] [ProtonDrive](https://proton.me/drive)
-  - [x] [139yun](https://yun.139.com) (Personal, Family, Group, Share)
-  - [x] [YandexDisk](https://disk.yandex.com)
-  - [x] [BaiduNetdisk](http://pan.baidu.com)
-  - [x] [Terabox](https://www.terabox.com/main)
-  - [x] [UC](https://drive.uc.cn)
-  - [x] [Quark](https://pan.quark.cn)
-  - [x] [Thunder](https://pan.xunlei.com)
-  - [x] [Lanzou](https://www.lanzou.com)
-  - [x] [ILanzou](https://www.ilanzou.com)
-  - [x] [Google photo](https://photos.google.com)
-  - [x] [Mega.nz](https://mega.nz)
-  - [x] [Baidu photo](https://photo.baidu.com)
-  - [x] [SMB](https://en.wikipedia.org/wiki/Server_Message_Block)
-  - [x] [115](https://115.com)
-  - [X] [Cloudreve](https://cloudreve.org)
-  - [x] [Dropbox](https://www.dropbox.com)
-  - [x] [FeijiPan](https://www.feijipan.com)
-  - [x] [dogecloud](https://www.dogecloud.com/product/oss)
-  - [x] [Azure Blob Storage](https://azure.microsoft.com/products/storage/blobs)
-  - [x] [Chaoxing](https://www.chaoxing.com)
-  - [x] [CNB](https://cnb.cool/)
-  - [x] [Degoo](https://degoo.com)
-  - [x] [Doubao](https://www.doubao.com)
-  - [x] [Febbox](https://www.febbox.com)
-  - [x] [GitHub](https://github.com)
-  - [x] [OpenList](https://github.com/OpenListTeam/OpenList)
-  - [x] [Teldrive](https://github.com/tgdrive/teldrive)
-  - [x] [Weiyun](https://www.weiyun.com)
-  - [x] [DingTalk Docs](https://alidocs.dingtalk.com/)
-- [x] Easy to deploy and out-of-the-box
-- [x] File preview (PDF, markdown, code, plain text, ...)
-- [x] Image preview in gallery mode
-- [x] Video and audio preview, support lyrics and subtitles
-- [x] Office documents preview (docx, pptx, xlsx, ...)
-- [x] `README.md` preview rendering
-- [x] File permalink copy and direct file download
-- [x] Dark mode
-- [x] I18n
-- [x] Protected routes (password protection and authentication)
-- [x] WebDAV
-- [x] Docker Deploy
-- [x] Cloudflare Workers proxy
-- [x] File/Folder package download
-- [x] Web upload(Can allow visitors to upload), delete, mkdir, rename, move and copy
-- [x] Offline download
-- [x] Copy files between two storage
-- [x] Multi-thread downloading acceleration for single-thread download/stream
-
-## Document
-
-- 📘 [Docs](https://doc.oplist.org)
-- 🌏 [CN Mirror](https://doc.oplist.org.cn)
-- ⚖️ [Terms of Use](https://doc.oplist.org/terms)
-- 🔒 [Privacy Policy](https://doc.oplist.org/privacy)
-
-## Demo
-
-- 🌎 [Global Demo](https://demo.oplist.org)
-- 🇨🇳 [CN Demo](https://demo.oplist.org.cn)
-
-## Discussion
-
-Please refer to [*Discussions*](https://github.com/OpenListTeam/OpenList/discussions) for raising general questions, ***Issues* is for bug reports and feature requests only.**
-
-## Sponsor
-
-[![VPS.Town](https://vps.town/static/images/sponsor.png)](https://vps.town "VPS.Town - Trust, Effortlessly. Your Cloud, Reimagined.")
-
-## Donors
-
-Thanks to the following donors for their generous support:
-
-- [HisAtri](https://github.com/HisAtri)
-- 爱发电用户_7jTh
-- suka
-
-## License
-
-The `OpenList` is open-source software licensed under the [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.txt) license.
-
-## Disclaimer
-
-- This project is a free and open-source software designed to facilitate file sharing via net disks, primarily intended to support the downloading and learning of the Go programming language.
-- Please comply with all applicable laws and regulations when using this software. Any form of misuse is strictly prohibited.
-- The software is based on official SDKs or APIs without any modification, disruption, or interference with their behavior.
-- It only performs HTTP 302 redirects or traffic forwarding, and does not intercept, store, or tamper with any user data.
-- This project is not affiliated with any official platform or service provider.
-- The software is provided "as is", without any warranties of any kind, either express or implied, including but not limited to warranties of merchantability or fitness for a particular purpose.
-- The maintainers are not liable for any direct or indirect damages arising from the use of, or inability to use, this software.
-- You are solely responsible for any risks associated with using this software, including but not limited to account bans or download speed limitations.
-- This project is licensed under the [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.txt) License. Please see the [LICENSE](./LICENSE) file for details.
-
-## Contact Us
-
-- [@GitHub](https://github.com/OpenListTeam)
-- [Telegram Group](https://t.me/OpenListTeam)
-- [Telegram Channel](https://t.me/OpenListOfficial)
-
-## Contributors
-
-We sincerely thank the author [Xhofe](https://github.com/Xhofe) of the original project [AlistGo/alist](https://github.com/AlistGo/alist) and all other contributors.
-
-Thanks goes to these wonderful people:
-
-[![Contributors](https://contrib.rocks/image?repo=OpenListTeam/OpenList)](https://github.com/OpenListTeam/OpenList/graphs/contributors)
-
+- 上游：[OpenListTeam/OpenList](https://github.com/OpenListTeam/OpenList)。通用功能介绍保留在 [上游中文说明](README/README_cn.md)，使用文档见 [OpenList 文档](https://doc.oplist.org)。
+- 本仓库遵循 [AGPL-3.0](LICENSE)，保留上游版权和许可声明。配套前端的许可证见其独立仓库。
+- 感谢 OpenList 团队、原 AList 项目作者与所有贡献者。贡献规范见 [CONTRIBUTING.md](CONTRIBUTING.md) 和 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)。

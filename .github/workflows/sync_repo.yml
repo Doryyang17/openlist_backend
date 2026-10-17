@@ -8,6 +8,8 @@ on:
 
 jobs:
   sync:
+    # Fork source pushes must not be mirrored to an upstream destination.
+    if: github.repository == 'OpenListTeam/OpenList'
     runs-on: ubuntu-latest
     name: Sync GitHub to Gitee
     steps:

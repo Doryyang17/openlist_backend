@@ -34,3 +34,6 @@ output/
 
 .VSCodeCounter
 *.syso
+# Python QA helper bytecode
+__pycache__/
+*.py[cod]
