@@ -4,13 +4,13 @@
 
 ## 工具链与编译
 
-要求以 `go.mod` 为准，当前声明 `go 1.26.0` 和工具链 `go1.27.1`。Go 模块仍为 `github.com/OpenListTeam/OpenList/v4`，不因 fork 名称不同而批量重写 import。
+要求以 `go.mod` 为准，当前声明 `go 1.26.0` 和工具链 `go1.27.3`。Go 模块仍为 `github.com/OpenListTeam/OpenList/v4`，不因 fork 名称不同而批量重写 import。
 
 ```sh
-GOTOOLCHAIN=go1.27.1 go version
-GOTOOLCHAIN=go1.27.1 GOMAXPROCS=1 go mod download
-GOTOOLCHAIN=go1.27.1 GOMAXPROCS=1 go mod verify
-GOTOOLCHAIN=go1.27.1 GOMAXPROCS=1 go build -p 1 -mod=readonly -tags=jsoniter -o ./bin/openlist-dev .
+GOTOOLCHAIN=go1.27.3 go version
+GOTOOLCHAIN=go1.27.3 GOMAXPROCS=1 go mod download
+GOTOOLCHAIN=go1.27.3 GOMAXPROCS=1 go mod verify
+GOTOOLCHAIN=go1.27.3 GOMAXPROCS=1 go build -p 1 -mod=readonly -tags=jsoniter -o ./bin/openlist-dev .
 ./bin/openlist-dev version
 ```
 
@@ -45,7 +45,7 @@ GOMAXPROCS=1 go test -p 1 -mod=readonly -tags=jsoniter ./internal/db ./server/ha
 
 `python3 scripts/qa-favorites.py` 需要已经初始化的独立 QA 环境及 `/sandbox` 合成文件挂载。该脚本会创建合成账号、文件和元信息，并删除本次专用测试账号；不会清理已有 QA 数据。运行前阅读脚本和接口文档，不用于稳定实例。
 
-完整包测试中的原有搜索用例 `TestIsSearchNodeAccessible/outside_base_path` 在未修改上游基线同样失败，应与收藏专项结果分别记录。MySQL/PostgreSQL、真实手机、生产迁移和 Linux 镜像／数据卷恢复仍需验收。
+2026-11-03 同步上游后，`internal/db` 与 `server/handles` 完整包测试通过，初始基线的搜索用例 `TestIsSearchNodeAccessible/outside_base_path` 失败记录已消除。MySQL/PostgreSQL、真实手机、生产迁移和 Linux 镜像／数据卷恢复仍需验收。
 
 ## 同步上游
 

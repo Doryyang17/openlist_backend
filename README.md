@@ -1,6 +1,6 @@
 # OpenList 个人定制后端
 
-基于 [OpenList v4.2.7](https://github.com/OpenListTeam/OpenList/tree/v4.2.7) 的个人定制后端，保留上游 Git 历史、Go 模块路径与许可证，集中维护账号收藏等二开功能。本项目独立维护，不是 OpenList 官方发行版。
+基于 OpenList 的个人定制后端，初始基线为 [v4.2.7](https://github.com/OpenListTeam/OpenList/tree/v4.2.7)，当前同步至上游 main 的 [`e72822f5`](https://github.com/OpenListTeam/OpenList/commit/e72822f5)。保留上游 Git 历史、Go 模块路径与许可证，集中维护账号收藏等二开功能。本项目独立维护，不是 OpenList 官方发行版。
 
 配套前端为 [openlist_front](https://github.com/Doryyang17/openlist_front)（需要仓库访问权限），初始基线为 OpenList-Frontend v4.2.6。前后端分别维护源码和提交；收藏界面与接口需要配套使用。
 
@@ -24,6 +24,12 @@
 
 按日期倒序记录定制功能、修复与基线变化。上游版本号表示源码来源，不等同于二开版本已经发布或部署；配套前端的早期定制历史在其 README 中维护。
 
+### 2026-11-03
+
+- **同步上游 main**：合并初始基线后的 29 个上游提交，纳入媒体库、种子工具、CtFile OpenAPI 驱动、WebDAV 与分享修复及依赖更新，工具链升级至 go1.27.3。
+- **保留二开历史与能力**：使用 merge 保留原始收藏提交 `bf9ebea8`，在数据库启动迁移中同时注册收藏、媒体库与 WebDAV 属性表，保留账号隔离收藏路由及 fork 发布流程限制。
+- **启动迁移回归**：增加真实 `Init` 路径的新库与升级测试，检查重复启动后收藏内容、唯一约束及新增上游表共存。
+
 ### 2026-10-17
 
 - **账号收藏首版**：新增收藏模型、数据访问与六个接口，接入数据库迁移、登录账号认证及删除账号清理。支持文件／目录收藏、分页筛选、批量状态查询、目标与父目录解析。
@@ -38,7 +44,7 @@
 
 ## 开发与验证
 
-工具链要求以 [go.mod](go.mod) 为准，当前声明 Go 1.26.0、工具链 go1.27.1。独立数据目录、前后端联调和上游同步方法见 [本地开发说明](LOCAL_DEVELOPMENT.md)。
+工具链要求以 [go.mod](go.mod) 为准，当前声明 Go 1.26.0、工具链 go1.27.3。独立数据目录、前后端联调和上游同步方法见 [本地开发说明](LOCAL_DEVELOPMENT.md)。
 
 ```sh
 # 收藏专项：临时 SQLite、账号隔离、并发与迁移
@@ -48,7 +54,7 @@ GOMAXPROCS=1 go test -p 1 -mod=readonly -tags=jsoniter ./internal/db ./server/ha
 GOMAXPROCS=1 go build -p 1 -mod=readonly -tags=jsoniter -o ./bin/openlist-dev .
 ```
 
-收藏自动化测试当前实测 SQLite；MySQL/PostgreSQL 尚未验收。完整包测试中，原有搜索用例 `TestIsSearchNodeAccessible/outside_base_path` 在未修改的上游基线同样失败；收藏专项通过不代表所有上游测试通过。
+收藏自动化测试当前实测 SQLite；MySQL/PostgreSQL 尚未验收。2026-11-03 同步上游后，`internal/db` 与 `server/handles` 完整包测试通过，包含新库启动、旧库升级和重复启动后的收藏保留；初始基线的搜索用例 `TestIsSearchNodeAccessible/outside_base_path` 失败记录已随本次上游更新消除。
 
 ## 配套与发布边界
 
