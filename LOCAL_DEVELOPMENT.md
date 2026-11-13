@@ -4,7 +4,7 @@
 
 ## 工具链与编译
 
-要求以 `go.mod` 为准，当前声明 `go 1.26.0` 和工具链 `go1.27.3`。Go 模块仍为 `github.com/OpenListTeam/OpenList/v4`，不因 fork 名称不同而批量重写 import。
+要求以 `go.mod` 为准，当前声明 `go 1.26.4` 和工具链 `go1.27.3`。Go 模块仍为 `github.com/OpenListTeam/OpenList/v4`，不因 fork 名称不同而批量重写 import。
 
 ```sh
 GOTOOLCHAIN=go1.27.3 go version

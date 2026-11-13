@@ -1,6 +1,6 @@
 # OpenList 个人定制后端
 
-基于 OpenList 的个人定制后端，初始基线为 [v4.2.7](https://github.com/OpenListTeam/OpenList/tree/v4.2.7)，当前同步至上游 main 的 [`e72822f5`](https://github.com/OpenListTeam/OpenList/commit/e72822f5)。保留上游 Git 历史、Go 模块路径与许可证，集中维护账号收藏等二开功能。本项目独立维护，不是 OpenList 官方发行版。
+基于 OpenList 的个人定制后端，初始基线为 [v4.2.7](https://github.com/OpenListTeam/OpenList/tree/v4.2.7)，当前同步至上游 main 的 [`f2dcf4a8`](https://github.com/OpenListTeam/OpenList/commit/f2dcf4a86be90c5ca9210fd3e2c464be87a94e1a)。保留上游 Git 历史、Go 模块路径与许可证，集中维护账号收藏等二开功能。本项目独立维护，不是 OpenList 官方发行版。
 
 配套前端为 [openlist_front](https://github.com/Doryyang17/openlist_front)（需要仓库访问权限），初始基线为 OpenList-Frontend v4.2.6。前后端分别维护源码和提交；收藏界面与接口需要配套使用。
 
@@ -24,6 +24,12 @@
 
 按日期倒序记录定制功能、修复与基线变化。上游版本号表示源码来源，不等同于二开版本已经发布或部署；配套前端的早期定制历史在其 README 中维护。
 
+### 2026-11-13
+
+- **同步上游 main**：合并 13 个上游提交，纳入存储凭据持久化与 SQLite WAL、断流续读、目录错误处理、跨设备回收站、媒体扫描与种子工具更新，以及多个存储驱动修复。
+- **保留二开历史与能力**：通过 merge 保留 `bf9ebea8` 和 `51b357e6`，继续保留账号收藏、数据库迁移、账号删除清理和 fork 发布流程限制；路由中仅追加上游媒体接口。
+- **本机测试兼容**：为上游只读目录复制测试补齐目标目录的权限恢复，使非 root 用户也能清理临时测试文件；复制行为与权限断言保持不变。
+
 ### 2026-11-03
 
 - **同步上游 main**：合并初始基线后的 29 个上游提交，纳入媒体库、种子工具、CtFile OpenAPI 驱动、WebDAV 与分享修复及依赖更新，工具链升级至 go1.27.3。
@@ -44,7 +50,7 @@
 
 ## 开发与验证
 
-工具链要求以 [go.mod](go.mod) 为准，当前声明 Go 1.26.0、工具链 go1.27.3。独立数据目录、前后端联调和上游同步方法见 [本地开发说明](LOCAL_DEVELOPMENT.md)。
+工具链要求以 [go.mod](go.mod) 为准，当前声明 Go 1.26.4、工具链 go1.27.3。独立数据目录、前后端联调和上游同步方法见 [本地开发说明](LOCAL_DEVELOPMENT.md)。
 
 ```sh
 # 收藏专项：临时 SQLite、账号隔离、并发与迁移
