@@ -26,7 +26,7 @@ func favoriteConcurrencyDB(t *testing.T, mode string) *gorm.DB {
 	if err := d.Exec("PRAGMA journal_mode=" + mode).Error; err != nil {
 		t.Fatal(err)
 	}
-	if err := d.AutoMigrate(&model.User{}, &model.CustomFavorite{}); err != nil {
+	if err := d.AutoMigrate(&model.User{}, &model.CustomFavorite{}, &model.CustomWatchHistory{}); err != nil {
 		t.Fatal(err)
 	}
 	return d

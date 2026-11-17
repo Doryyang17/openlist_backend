@@ -87,6 +87,12 @@ func Init(e *gin.Engine) {
 	favorites.POST("/add", handles.AddFavorite)
 	favorites.POST("/delete", handles.DeleteFavorite)
 	favorites.POST("/resolve", handles.ResolveFavorite)
+	history := auth.Group("/watch_history", middlewares.AuthNotGuest, handles.WatchHistoryLimits)
+	history.GET("/capabilities", handles.WatchHistoryCapabilities)
+	history.POST("/list", handles.ListWatchHistory)
+	history.POST("/get", handles.GetWatchHistory)
+	history.POST("/progress", handles.SaveWatchHistory)
+	history.POST("/resolve", handles.ResolveWatchHistory)
 	auth.POST("/me/update", handles.UpdateCurrent)
 	// 媒体应用密钥（每个登录用户都可以为自己的客户端签发密钥）
 	auth.GET("/me/appkey/list", handles.ListMediaAppKeys)

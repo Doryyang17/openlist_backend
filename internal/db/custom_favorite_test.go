@@ -26,7 +26,7 @@ func TestFavoritesIsolationPersistenceAndLifecycle(t *testing.T) {
 	previous := db
 	db = open()
 	t.Cleanup(func() { sql, _ := db.DB(); _ = sql.Close(); db = previous })
-	if err := db.AutoMigrate(&model.User{}, &model.CustomFavorite{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}, &model.CustomFavorite{}, &model.CustomWatchHistory{}); err != nil {
 		t.Fatal(err)
 	}
 	u := model.User{Username: "one", BasePath: "/"}
@@ -114,7 +114,7 @@ func TestFavoritesPaginationAtScale(t *testing.T) {
 	previous := db
 	db = d
 	t.Cleanup(func() { sql, _ := db.DB(); _ = sql.Close(); db = previous })
-	if err := db.AutoMigrate(&model.User{}, &model.CustomFavorite{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}, &model.CustomFavorite{}, &model.CustomWatchHistory{}); err != nil {
 		t.Fatal(err)
 	}
 	ctx := context.Background()

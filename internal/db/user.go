@@ -80,6 +80,9 @@ func DeleteUserById(id uint) error {
 		if err := tx.Where("user_id = ?", id).Delete(&model.CustomFavorite{}).Error; err != nil {
 			return err
 		}
+		if err := tx.Where("user_id = ?", id).Delete(&model.CustomWatchHistory{}).Error; err != nil {
+			return err
+		}
 		return tx.Delete(&model.User{}, id).Error
 	}))
 }
